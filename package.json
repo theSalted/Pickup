@@ -1,0 +1,19 @@
+{
+  "name": "com.picturesque.pickupplacesystem",
+  "version": "1.0.0",
+  "displayName": "Pickup & Place System",
+  "description": "A modular pickup and placement system for Unity games with visual feedback and collision detection",
+  "unity": "2020.3",
+  "dependencies": {
+    "com.unity.inputsystem": "1.0.0"
+  },
+  "keywords": [
+    "pickup",
+    "interaction",
+    "inventory",
+    "placement"
+  ],
+  "author": {
+    "name": "Picturesque Team"
+  }
+}
