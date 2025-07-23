@@ -50,12 +50,14 @@ public class InteractableDetector : MonoBehaviour
 
     void OnEnable()
     {
+        // OnEnable - Subscribing to events
         CameraRayController.OnRaycastEvent += OnRaycastReceived;
         CameraRayController.OnInteractEvent += OnInteractReceived;
     }
 
     void OnDisable()
     {
+        // OnDisable - Unsubscribing from events
         CameraRayController.OnRaycastEvent -= OnRaycastReceived;
         CameraRayController.OnInteractEvent -= OnInteractReceived;
     }
@@ -68,7 +70,7 @@ public class InteractableDetector : MonoBehaviour
         }
         else if (Instance != this)
         {
-            Debug.LogError("Multiple instances of InteractableDetector detected. Destroying duplicate.");
+            // Multiple instances detected - destroying duplicate
             Destroy(gameObject);
         }
     }
@@ -80,6 +82,23 @@ public class InteractableDetector : MonoBehaviour
 
     private void OnInteractReceived(InputAction.CallbackContext context)
     {
+        // Received interact input
+        
+        // Don't handle interaction if an object is currently being moved
+        if (PlayerManager.Instance != null)
+        {
+            // Check PlayerManager inventory state
+            if (PlayerManager.Instance.inventory != null)
+            {
+                // Ignoring input - object is being moved
+                return;
+            }
+        }
+        else
+        {
+            // PlayerManager.Instance is null
+        }
+        
         CheckInteract();
     }
 
@@ -87,13 +106,14 @@ public class InteractableDetector : MonoBehaviour
     {
         if (!enabled) { return; }
 
-        // int layerMask = ~LayerMask.GetMask("Overlay", "Ignore Raycast");
+        int layerMask = ~LayerMask.GetMask("Overlay", "Ignore Raycast");
         
         RaycastHit hitData;
-        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength))
+        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength, layerMask))
         {
             GameObject hitObject = hitData.transform.gameObject;
             Interactable interactable = hitObject.GetComponent<Interactable>();
+
 
             interactableLabel = "Interact";
 
@@ -104,6 +124,7 @@ public class InteractableDetector : MonoBehaviour
                 return;
             }
 
+            // Object is interactable
             isInteractable = true;
 
             if (!staredObjects.Contains(hitObject))
@@ -147,17 +168,28 @@ public class InteractableDetector : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
         RaycastHit hitData;
 
-        // int layerMask = ~LayerMask.GetMask("Overlay", "Ignore Raycast");
+        int layerMask = ~LayerMask.GetMask("Overlay", "Ignore Raycast");
 
-        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength))
+        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength, layerMask))
         {
             GameObject hitObject = hitData.transform.gameObject;
             Interactable interactable = hitObject.GetComponent<Interactable>();
 
-            if (interactable == null || !interactable.isInteractable) { return; }
+            // Hit object during interact check
 
+            if (interactable == null || !interactable.isInteractable) 
+            { 
+                // Cannot interact with object - no component or not interactable
+                return; 
+            }
+
+            // Calling OnInteract() on object
             interactable?.OnInteract();
             OnInteractedWithItemEvent?.Invoke(hitObject);
+        }
+        else
+        {
+            // No object hit by raycast
         }
     }
 

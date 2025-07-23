@@ -26,6 +26,12 @@ public class FallingController : MonoBehaviour
             // give rb a random force 
             rb.AddForce(new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f)) * 1, ForceMode.Impulse);
         }
+        else
+        {
+            rb.isKinematic = false;
+            // give rb a random force 
+            rb.AddForce(new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f)) * 1, ForceMode.Impulse);
+        }
     }
 
     void OnDestroy()

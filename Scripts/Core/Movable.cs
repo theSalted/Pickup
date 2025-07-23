@@ -84,7 +84,7 @@ namespace PickupPlaceSystem
         outline = gameObject.GetComponent<IOutlineEffect>();
         if (outline == null)
         {
-            Debug.LogWarning($"No IOutlineEffect component found on {gameObject.name}. Visual feedback will not work.");
+            // No IOutlineEffect component found - visual feedback will not work
         }
 
         // Save original states
@@ -98,7 +98,15 @@ namespace PickupPlaceSystem
         originalPosition = transform.position;
 
         // Get the player's transform (assuming the player has the tag "Player")
-        playerTransform = GameObject.FindGameObjectWithTag("Player").transform;
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+            playerTransform = playerObject.transform;
+        }
+        else
+        {
+            // No GameObject with 'Player' tag found
+        }
         Vector3 meshCenter = CalculateMeshCenter();
         offset = transform.position - meshCenter;
     }
@@ -143,7 +151,7 @@ namespace PickupPlaceSystem
                 {
                     MovableDetector.Instance.isPlaceable = true;
                 }
-                Debug.Log("SnapController: Snapping to target");   
+                // Snapping to target
             }
 
             // Lerp towards the adjusted target position
@@ -169,13 +177,21 @@ namespace PickupPlaceSystem
 
     public virtual void OnInteractCallback(InputAction.CallbackContext context)
     {
+        // OnInteractCallback called
+        
         if (isBeingMoved && this.enabled)
         {
             // Try to place the object
+            // Check if position is placeable
             if (MovableDetector.Instance.isPlaceable)
             {
+                // Placing object - stopping movement
                 // Place the object and stop moving
                 isBeingMoved = false;
+            }
+            else
+            {
+                // Cannot place object - position not placeable
             }
         }
     }
@@ -187,10 +203,17 @@ namespace PickupPlaceSystem
 
     public void OnInteract()
     {
+        // OnInteract called
+        
         if (!isBeingMoved && this.enabled)
         {
+            // Starting to move object
             // Start moving the object
             isBeingMoved = true;
+        }
+        else
+        {
+            // Cannot start moving object - already moving or disabled
         }
     }
 
@@ -226,7 +249,18 @@ namespace PickupPlaceSystem
             {
                 outline.ShowOutline();
             }
-            collider.isTrigger = true; // Set collider to trigger during movement
+            
+            // Set collider to trigger during movement (avoid concave mesh colliders)
+            MeshCollider meshCollider = collider as MeshCollider;
+            if (meshCollider != null && !meshCollider.convex)
+            {
+                // Cannot set concave MeshCollider to trigger - disabling collider instead
+                collider.enabled = false;
+            }
+            else
+            {
+                collider.isTrigger = true;
+            }
             isMovingInitialized = true;
             Destroy(gameObject.GetComponent<FallingController>());
             InteractEnable();
@@ -259,8 +293,9 @@ namespace PickupPlaceSystem
             outline.SetOutlineColor(originalOutlineColor);
             outline.HideOutline();
         }
-        collider.isTrigger = false;
-        collider.enabled = true;
+        collider.isTrigger = originalColliderTrigger;
+        collider.enabled = originalColliderEnabled;
+        
         isMovingInitialized = false;
         OnStopMoving();
         InteractDisable();
@@ -269,6 +304,7 @@ namespace PickupPlaceSystem
 
     public virtual void OnStopMoving()
     {
+        // Adding FallingController
         gameObject.AddComponent<FallingController>();
     }
 
@@ -353,7 +389,6 @@ namespace PickupPlaceSystem
         Vector3 finalPosition = upDot >= 0 ? targetPosition + offset : targetPosition - offset;
         // Vector3 finalPosition = targetPosition + offset;
         // Optional: Add debug log
-        // Debug.Log($"Object orientation upDot: {upDot}. Final Position: {finalPosition}");
 
         return finalPosition;
 }
@@ -443,8 +478,15 @@ namespace PickupPlaceSystem
             interact = inputActions.FindAction(interactActionName);
             if (interact != null)
             {
+                // Enabling input for object
                 interact.Enable();
                 interact.performed += OnInteractCallback;
+                interact.canceled += OnInteractCallback; // Also listen for canceled events
+                // Input action now enabled
+            }
+            else
+            {
+                // Interact action is null
             }
         }
     }
@@ -453,7 +495,9 @@ namespace PickupPlaceSystem
     {
         if (interact != null)
         {
+            // Disabling input for object
             interact.performed -= OnInteractCallback;
+            interact.canceled -= OnInteractCallback; // Also unsubscribe from canceled events
             interact.Disable();
         }
     }

@@ -101,8 +101,6 @@ public class MovableDetector : MonoBehaviour
         else if (Instance != this)
         {
 
-            Debug.LogError("Multiple instances of PlaceableDetector detected. Destroying duplicate.");
-
             Destroy(gameObject);
 
         }
@@ -121,12 +119,9 @@ public class MovableDetector : MonoBehaviour
     private void DetectPlaceable(Ray ray)
     {
 
-        int layerMask = ~LayerMask.GetMask("Overlay", "Placeable");
-
         RaycastHit hitData;
 
-        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength, layerMask))
-        // if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength))
+        if (Physics.Raycast(ray, out hitData, CameraRayController.Instance.rayLength))
         {
 
             isPlaceable = true;
