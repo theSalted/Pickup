@@ -1,6 +1,8 @@
 using UnityEngine;
 
-public class PaintingPlacementDetector : MonoBehaviour
+namespace PickupPlaceSystem
+{
+    public class PaintingPlacementDetector : MonoBehaviour
 {
     public static PaintingPlacementDetector Instance { get; private set; }
     private bool _isPlaceable = true;
@@ -109,5 +111,6 @@ public class PaintingPlacementDetector : MonoBehaviour
             // ReticleManager.Instance.CurrentReticleState = ReticleManager.ReticleState.Normal;
             ReticleManager.Instance.Label = "";
         }
+    }
     }
 }

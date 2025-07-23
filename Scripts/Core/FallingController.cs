@@ -1,3 +1,5 @@
+namespace PickupPlaceSystem
+{
 using System;
 using UnityEditor;
 using UnityEngine;
@@ -57,4 +59,5 @@ public class FallingController : MonoBehaviour
         }
         
     }
+}
 }

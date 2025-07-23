@@ -1,7 +1,9 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PickUp : Movable
+namespace PickupPlaceSystem
+{
+    public class PickUp : Movable
 {
 
     public override void StartMoving()
@@ -63,4 +65,5 @@ public class PickUp : Movable
     //         playerInZone = false;
     //     }
     // }
+    }
 }

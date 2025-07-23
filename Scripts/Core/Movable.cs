@@ -5,12 +5,14 @@ using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
-public class Movable : MonoBehaviour, Interactable
+namespace PickupPlaceSystem
+{
+    public class Movable : MonoBehaviour, Interactable
 {
     [SerializeField] private bool _isInteractable = true;
 
     private new Collider collider;
-    private Outline _outline;
+    private IOutlineEffect _outline;
     private MeshRenderer meshRenderer;
 
     [HideInInspector]
@@ -28,13 +30,14 @@ public class Movable : MonoBehaviour, Interactable
     private Vector3 offset;
 
     private bool isMovingInitialized = false;
-    public InputSystemActions playerInputs;
+    public InputActionAsset inputActions;
+    public string interactActionName = "Interact";
     private InputAction interact;
     public float lerpSpeed = 10f; // Speed of interpolation for smooth movement
 
     public List<Movable> neighborMovable = new List<Movable>();
 
-    public Outline outline
+    public IOutlineEffect outline
     {
         get { return _outline; }
         set { _outline = value; }
@@ -78,15 +81,17 @@ public class Movable : MonoBehaviour, Interactable
         meshRenderer = GetComponent<MeshRenderer>();
         collider = GetComponent<Collider>();
         _isTrigger = collider.isTrigger;
-        outline = gameObject.GetComponent<Outline>();
+        outline = gameObject.GetComponent<IOutlineEffect>();
         if (outline == null)
         {
-            outline = gameObject.AddComponent<Outline>();
+            Debug.LogWarning($"No IOutlineEffect component found on {gameObject.name}. Visual feedback will not work.");
         }
-        playerInputs = new InputSystemActions();
 
         // Save original states
-        originalOutlineColor = outline.OutlineColor;
+        if (outline != null)
+        {
+            originalOutlineColor = Color.white; // Default color since we can't get it from interface
+        }
         originalColliderTrigger = collider.isTrigger;
         originalLayer = gameObject.layer;
         originalColliderEnabled = collider.enabled;
@@ -148,13 +153,16 @@ public class Movable : MonoBehaviour, Interactable
             transform.rotation = Quaternion.Lerp(transform.rotation, adjustedRotation, lerpSpeed * Time.deltaTime);
 
             // Update the outline color based on the isPlaceable state
-            if (MovableDetector.Instance.isPlaceable)
+            if (outline != null)
             {
-                outline.OutlineColor = new Color(0.4196f, 0.8706f, 0.4392f); // Green color
-            }
-            else
-            {
-                outline.OutlineColor = Color.red;
+                if (MovableDetector.Instance.isPlaceable)
+                {
+                    outline.SetOutlineColor(new Color(0.4196f, 0.8706f, 0.4392f)); // Green color
+                }
+                else
+                {
+                    outline.SetOutlineColor(Color.red);
+                }
             }
         }
     }
@@ -189,18 +197,18 @@ public class Movable : MonoBehaviour, Interactable
     public void OnStare()
     {
         // Since this can be called via interface, thus bypassing rendering loop, we need to check if the component is enabled
-        if (this.enabled && !isBeingMoved)
+        if (this.enabled && !isBeingMoved && outline != null)
         {
-            outline.enabled = true;
+            outline.ShowOutline();
         }
     }
 
     public void OnStareExit()
     {
         // Since this can be called via interface, thus bypassing rendering loop, we need to check if the component is enabled
-        if (this.enabled && !isBeingMoved)
+        if (this.enabled && !isBeingMoved && outline != null)
         {
-            outline.enabled = false;
+            outline.HideOutline();
         }
     }
 
@@ -214,7 +222,10 @@ public class Movable : MonoBehaviour, Interactable
             }
             PlayerManager.Instance.inventory = gameObject;
             ChangeLayer("Overlay");
-            outline.enabled = true;
+            if (outline != null)
+            {
+                outline.ShowOutline();
+            }
             collider.isTrigger = true; // Set collider to trigger during movement
             isMovingInitialized = true;
             Destroy(gameObject.GetComponent<FallingController>());
@@ -243,8 +254,11 @@ public class Movable : MonoBehaviour, Interactable
         // Restore original states
         PlayerManager.Instance.inventory = null;
         ChangeLayer("Default");
-        outline.OutlineColor = originalOutlineColor;
-        outline.enabled = false;
+        if (outline != null)
+        {
+            outline.SetOutlineColor(originalOutlineColor);
+            outline.HideOutline();
+        }
         collider.isTrigger = false;
         collider.enabled = true;
         isMovingInitialized = false;
@@ -424,17 +438,24 @@ public class Movable : MonoBehaviour, Interactable
 
     void InteractEnable()
     {
-        interact = playerInputs.Player.Interact;
-
-        interact.Enable();
-
-        interact.performed += OnInteractCallback;
+        if (inputActions != null)
+        {
+            interact = inputActions.FindAction(interactActionName);
+            if (interact != null)
+            {
+                interact.Enable();
+                interact.performed += OnInteractCallback;
+            }
+        }
     }
 
     void InteractDisable()
     {
-        interact.performed -= OnInteractCallback; // Unsubscribe from the event
-        interact.Disable();
+        if (interact != null)
+        {
+            interact.performed -= OnInteractCallback;
+            interact.Disable();
+        }
     }
 
     public virtual void OnDrawGizmos()
@@ -487,5 +508,6 @@ public class Movable : MonoBehaviour, Interactable
 
         center /= meshFilters.Length;
         return center;
+    }
     }
 }

@@ -1,3 +1,5 @@
+namespace PickupPlaceSystem
+{
 using UnityEngine;
 
 public class ReticleManager : MonoBehaviour
@@ -42,5 +44,6 @@ public class ReticleManager : MonoBehaviour
             Debug.LogError("Multiple instances of ReticleManager detected. Destroying duplicate.");
             Destroy(gameObject);
         }
+    }
     }
 }

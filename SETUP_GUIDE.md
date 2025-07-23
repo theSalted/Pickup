@@ -4,7 +4,7 @@
 
 1. Unity 2020.3 or newer
 2. Unity's New Input System installed
-3. An outline effect solution (e.g., QuickOutline from Asset Store)
+3. An outline effect solution (see Outline Setup section below)
 
 ## Step-by-Step Setup
 
@@ -43,7 +43,8 @@ On your Player GameObject:
    - Add `SnapableDetector` component (optional)
 
 3. **Configure Components:**
-   - On `InteractableDetector`: Set `maxDistance` (default: 10f)
+   - On `CameraRayController`: Assign your Input Actions asset and set the interact action name
+   - On `InteractableDetector`: Set `maxDistance` (default: 10f)  
    - On `ReticleManager`: Assign your reticle UI elements
 
 ### 5. Create Pickupable Objects
@@ -51,7 +52,8 @@ On your Player GameObject:
 For each object you want to be pickupable:
 
 1. Add a Collider component
-2. Add one of these components:
+2. Add an outline effect component (see Outline Setup below)
+3. Add one of these components:
    - `PickUp` - For basic pickupable objects
    - `Extractable` - For objects that need to be "pulled out" first
    - Or extend `Movable` for custom behavior
@@ -64,43 +66,45 @@ Create a simple reticle:
 3. Set to center of screen
 4. Assign to `ReticleManager.reticle`
 
-### 7. Handle Outline Effects
+### 7. Outline Setup
 
-Since the outline system depends on your chosen solution:
+Choose one of these outline solutions:
 
-1. Open `Interactable.cs`
-2. Find the `ShowOutline()` and `HideOutline()` methods
-3. Replace with your outline system's API calls
+#### Option A: Simple Built-in Outline (Recommended for beginners)
+1. Add the `SimpleOutline` component to each pickupable object
+2. This uses Unity's emission system for a basic glow effect
 
-Example for QuickOutline:
-```csharp
-public virtual void ShowOutline()
-{
-    var outline = GetComponent<Outline>();
-    if (outline != null)
-        outline.enabled = true;
-}
-```
+#### Option B: QuickOutline (If you have it from Asset Store)
+1. Install QuickOutline from the Asset Store
+2. Add the `QuickOutlineAdapter` component to each pickupable object
+3. Uncomment the implementation section in `QuickOutlineAdapter.cs`
+
+#### Option C: Custom Outline Solution
+1. Create a class that implements `IOutlineEffect`
+2. Add your custom outline component to pickupable objects
 
 ## Testing Your Setup
 
 1. Place a cube in your scene
-2. Add `PickUp` component to it
-3. Play the scene
-4. Look at the cube - it should show an outline
-5. Click to pick it up
-6. Click again to place it down
+2. Add `SimpleOutline` component to it
+3. Add `PickUp` component to it
+4. Play the scene
+5. Look at the cube - it should show an outline
+6. Click to pick it up
+7. Click again to place it down
 
 ## Common Issues
 
 **No outline appears:**
-- Check that your outline system is properly integrated
-- Verify the object has the outline component
+- Ensure the object has an IOutlineEffect component (like SimpleOutline)
+- Check that the component is properly configured
+- Verify the object's material supports emission (for SimpleOutline)
 
 **Can't pick up objects:**
-- Check Input System is configured correctly
-- Verify PlayerManager and detectors are set up
-- Ensure object has a Collider
+- Check Input Actions asset is assigned to CameraRayController
+- Verify PlayerManager and detectors are set up on player
+- Ensure object has a Collider and pickup component
+- Check that the interact action name matches in your Input Actions
 
 **Objects fall through surfaces:**
 - Add Rigidbody to pickupable objects

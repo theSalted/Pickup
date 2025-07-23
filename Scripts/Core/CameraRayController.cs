@@ -2,16 +2,19 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CameraRayController : MonoBehaviour
+namespace PickupPlaceSystem
 {
-    public static CameraRayController Instance { get; private set; }
+    public class CameraRayController : MonoBehaviour
+    {
+        public static CameraRayController Instance { get; private set; }
 
-    [Header("Ray Settings")]
-    public InputSystemActions playerInputs;
-    public float rayLength = 5f;
+        [Header("Ray Settings")]
+        public InputActionAsset inputActions;
+        public string interactActionName = "Interact";
+        public float rayLength = 5f;
 
-    private GameObject player;
-    private InputAction interact;
+        private GameObject player;
+        private InputAction interact;
 
     // Events
     public static event Action<Ray> OnRaycastEvent;
@@ -21,20 +24,29 @@ public class CameraRayController : MonoBehaviour
     {
         EnsureSingletonInstance();
         player = GameObject.FindGameObjectWithTag("Player");
-        playerInputs = new InputSystemActions();
+        
+        if (inputActions != null)
+        {
+            interact = inputActions.FindAction(interactActionName);
+        }
     }
 
     void OnEnable()
     {
-        interact = playerInputs.Player.Interact;
-        interact.Enable();
-        interact.performed += OnInteractCallback;
+        if (interact != null)
+        {
+            interact.Enable();
+            interact.performed += OnInteractCallback;
+        }
     }
 
     void OnDisable()
     {
-        interact.performed -= OnInteractCallback;
-        interact.Disable();
+        if (interact != null)
+        {
+            interact.performed -= OnInteractCallback;
+            interact.Disable();
+        }
     }
 
     void Update()
@@ -60,5 +72,6 @@ public class CameraRayController : MonoBehaviour
             Debug.LogError("Multiple instances of CameraRayController detected. Destroying duplicate.");
             Destroy(gameObject);
         }
+    }
     }
 }

@@ -1,3 +1,5 @@
+namespace PickupPlaceSystem
+{
 using UnityEngine;
 
 
@@ -211,4 +213,4 @@ public class MovableDetector : MonoBehaviour
 
     }
 
-}
+}}

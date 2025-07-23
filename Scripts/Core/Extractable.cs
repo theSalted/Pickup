@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Extractable : MonoBehaviour, Interactable
+namespace PickupPlaceSystem
+{
+    public class Extractable : MonoBehaviour, Interactable
 {
     
     private new Collider collider;
@@ -12,9 +14,9 @@ public class Extractable : MonoBehaviour, Interactable
     [HideInInspector]
     public bool _isTrigger;
     
-    private Outline _outline;
+    private IOutlineEffect _outline;
     [HideInInspector]
-    public Outline outline {
+    public IOutlineEffect outline {
         get {
             return _outline;
         }
@@ -42,13 +44,16 @@ public class Extractable : MonoBehaviour, Interactable
         } else {
             _isTrigger = false;
         }
-        outline = gameObject.GetComponent<Outline>();
+        outline = gameObject.GetComponent<IOutlineEffect>();
         if (outline == null) {
-            outline = gameObject.AddComponent<Outline>();
+            Debug.LogWarning($"No IOutlineEffect component found on {gameObject.name}. Visual feedback will not work.");
         }
-        gameObject.AddComponent<ExtractableRespawnable>();
-        outline.OutlineColor = new Color(0.4196f, 0.8706f, 0.4392f);
-        outline.enabled = false;    
+        // ExtractableRespawnable component removed - add manually if needed for your project
+        if (outline != null)
+        {
+            outline.SetOutlineColor(new Color(0.4196f, 0.8706f, 0.4392f));
+            outline.HideOutline();
+        }    
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -70,6 +75,13 @@ public class Extractable : MonoBehaviour, Interactable
             movable.isBeingMoved = true;
             movable._isTrigger = _isTrigger;
             movable._layerMask = _layerMask;
+            // Copy input actions reference
+            var cameraRay = FindFirstObjectByType<CameraRayController>();
+            if (cameraRay != null)
+            {
+                movable.inputActions = cameraRay.inputActions;
+                movable.interactActionName = cameraRay.interactActionName;
+            }
             ChangeLayer("Overlay");
             // Disable the Extractable component
             // Remove the Extractable component
@@ -83,9 +95,9 @@ public class Extractable : MonoBehaviour, Interactable
 
     public void OnStare() {
         // Since This is can be called via interface, thus bypassing rendering loop, we need to check if the component is enabled
-        if (this.enabled) {
+        if (this.enabled && outline != null) {
             ChangeLayer("Overlay");
-            outline.enabled = true;
+            outline.ShowOutline();
         }
         // collider.isTrigger = _isTrigger;
     }
@@ -95,7 +107,10 @@ public class Extractable : MonoBehaviour, Interactable
         if (this.enabled)  {
             ChangeLayer("Stencil");;
             collider.isTrigger = true;
-            outline.enabled = false;
+            if (outline != null)
+            {
+                outline.HideOutline();
+            }
         }
     } 
 
@@ -106,5 +121,6 @@ public class Extractable : MonoBehaviour, Interactable
         {
             child.gameObject.layer = LayerMask.NameToLayer(name);
         }
+    }
     }
 }

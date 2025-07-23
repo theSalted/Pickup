@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
-/// <summary>
-/// Interface for interactable object.
-/// </summary>
-public interface Interactable {
+namespace PickupPlaceSystem
+{
+    /// <summary>
+    /// Interface for interactable object.
+    /// </summary>
+    public interface Interactable {
     /// <summary>
     /// Use this to store wetaher the object is interactable.
     /// </summary>
@@ -16,7 +18,7 @@ public interface Interactable {
         set;
     }
 
-    Outline outline {
+    IOutlineEffect outline {
         get;
         set;
     }
@@ -45,5 +47,6 @@ public interface Interactable {
     /// </summary>
     void OnStareExit() {
         Debug.LogWarning("StareExit() not implemented");
+    }
     }
 }

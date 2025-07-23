@@ -1,3 +1,5 @@
+namespace PickupPlaceSystem
+{
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using UnityEngine;
@@ -29,4 +31,5 @@ public class Snapable : MonoBehaviour
             meshRenderer.enabled = false;
         }
     }
+}
 }
